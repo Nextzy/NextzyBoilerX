@@ -1,0 +1,1 @@
+include ':app', ':boilerx_network_core', ':boilerx_network_grpc', ':boilerx_utility', ':boilerx_repository_core', ':boilerx_domain_core', ':boilerx_dagger', ':boilerx_utility_dagger'
