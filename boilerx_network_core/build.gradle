@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: "kotlin-android"
 apply plugin: "kotlin-android-extensions"
 apply plugin: "kotlin-kapt"
+apply plugin: 'org.jetbrains.dokka-android'
 
 android {
     compileSdkVersion 28
@@ -27,6 +28,11 @@ kotlin {
     }
 }
 
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+}
+
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -43,3 +49,31 @@ dependencies {
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
 }
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'boilerx-network-core'
+
+    publishedGroupId = 'com.nextzy.library'
+    libraryName = 'BoilerX Core Network'
+    artifact = 'boilerx-network-core'
+
+    libraryDescription = 'Boilerplate Core Network Code'
+
+    siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
+    gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
+
+    libraryVersion = '1.0.0'
+
+    developerId = 'nextzy'
+    developerName = 'Nextzy Technologies'
+    developerEmail = 'geek@nextzy.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+apply from: '../publish/installv1.gradle'
+apply from: '../publish/bintrayv1.gradle'
+

@@ -3,6 +3,7 @@ apply plugin: "kotlin-android"
 apply plugin: "kotlin-android-extensions"
 apply plugin: "kotlin-kapt"
 apply plugin: "com.google.protobuf"
+apply plugin: 'org.jetbrains.dokka-android'
 
 android {
     compileSdkVersion 28
@@ -26,6 +27,11 @@ kotlin {
     experimental {
         coroutines "enable"
     }
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
 }
 
 protobuf {
@@ -65,3 +71,31 @@ dependencies {
 
     api project(':boilerx_network_core')
 }
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'boilerx-network-grpc'
+
+    publishedGroupId = 'com.nextzy.library'
+    libraryName = 'BoilerX gRPC Network'
+    artifact = 'boilerx-network-grpc'
+
+    libraryDescription = 'Boilerplate gRPC Network Code'
+
+    siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
+    gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
+
+    libraryVersion = '1.0.0'
+
+    developerId = 'nextzy'
+    developerName = 'Nextzy Technologies'
+    developerEmail = 'geek@nextzy.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+apply from: '../publish/installv1.gradle'
+apply from: '../publish/bintrayv1.gradle'
+
