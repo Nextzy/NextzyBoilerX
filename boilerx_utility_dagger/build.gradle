@@ -47,7 +47,7 @@ dependencies {
         exclude group: "com.android.support"
     }
 
-    api project(':boilerx_utility')
+    api "com.nextzy.library:boilerx-utility:1.0.0"
 }
 
 ext {
@@ -63,7 +63,7 @@ ext {
     siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
     gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     developerId = 'nextzy'
     developerName = 'Nextzy Technologies'

@@ -56,7 +56,7 @@ dependencies {
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
 
-    api project(':boilerx_network_core')
+    api "com.nextzy.library:boilerx-network-core:1.0.0"
 }
 
 ext {
@@ -72,7 +72,7 @@ ext {
     siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
     gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     developerId = 'nextzy'
     developerName = 'Nextzy Technologies'

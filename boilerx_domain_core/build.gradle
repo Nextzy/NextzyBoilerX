@@ -48,8 +48,8 @@ dependencies {
     }
     api 'com.jakewharton.timber:timber:4.7.1'
 
-    api project(':boilerx_network_core')
-    api project(':boilerx_repository_core')
+    api "com.nextzy.library:boilerx-network-core:1.0.0"
+    api "com.nextzy.library:boilerx-repository-core:1.0.1"
 }
 
 ext {
@@ -65,7 +65,7 @@ ext {
     siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
     gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     developerId = 'nextzy'
     developerName = 'Nextzy Technologies'
