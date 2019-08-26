@@ -9,8 +9,6 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -28,18 +26,18 @@ dokka {
 }
 
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'androidx.appcompat:appcompat:1.0.2'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
-    api 'com.google.dagger:dagger:2.21'
-    api('com.google.dagger:dagger-android:2.16') {
+    implementation 'com.google.dagger:dagger:2.21'
+    implementation('com.google.dagger:dagger-android:2.16') {
         exclude group: "com.android.support"
     }
-    api('com.google.dagger:dagger-android-support:2.16') {
+    implementation('com.google.dagger:dagger-android-support:2.16') {
         exclude group: "com.android.support"
     }
     kapt "com.google.dagger:dagger-compiler:2.21"
@@ -47,7 +45,7 @@ dependencies {
         exclude group: "com.android.support"
     }
 
-    api "com.nextzy.library:boilerx-utility:1.0.0"
+    implementation "com.nextzy.library:boilerx-utility:1.0.2"
 }
 
 ext {
@@ -63,7 +61,7 @@ ext {
     siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
     gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
 
-    libraryVersion = '1.0.1'
+    libraryVersion = '1.0.2'
 
     developerId = 'nextzy'
     developerName = 'Nextzy Technologies'
@@ -74,5 +72,5 @@ ext {
     allLicenses = ["Apache-2.0"]
 }
 
-apply from: '../publish/installv1.gradle'
-apply from: '../publish/bintrayv1.gradle'
+//apply from: '../publish/installv1.gradle'
+//apply from: '../publish/bintrayv1.gradle'
