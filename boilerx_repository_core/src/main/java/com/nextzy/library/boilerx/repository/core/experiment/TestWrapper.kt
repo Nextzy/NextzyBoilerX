@@ -1,50 +1,73 @@
 package com.nextzy.library.boilerx.repository.core.experiment
 
+import androidx.annotation.WorkerThread
 import com.google.gson.annotations.SerializedName
 import retrofit2.Call
+import retrofit2.Response
 
 class TestWrapper(
-    private val tokenRefresher: PreTokenRefresher<AccessTokenResponse>,
+    private val preTokenRefresher: PreTokenRefresher<AccessTokenResponse>,
+    private val postTokenRefresher: PostTokenRefresher<AccessTokenResponse>,
     private val tokenStore: AwesomeTokenStore,
     private val tokenUpdater: AwesomeTokenUpdater
 ) {
-    fun awesome() {
-
-    }
-
-    fun handleRefreshToken(body: () -> Unit) {
-
-    }
 
     fun retry(body: () -> Unit) {
 
     }
 
-
-    fun accessTokenValidator() {
-
-    }
-
-    fun tokenRefresher() {
-
-    }
-
-    fun isTokenExpired(token: String?): Boolean {
-        return true
-    }
-
     suspend fun run() {
+        val postRefresher = PostTokenRefresher(
+            AwesomeTokenUpdater(Util(), ApiManager()),
+            AwesomeTokenExpiredResponseValidator()
+        )
         val apiManager = ApiManager()
 //        val tokenStore = AwesomeTokenStore()
 //        val tokenUpdater = AwesomeTokenUpdater(Util(), apiManager)
 //        val tokenRefresher = PreTokenRefresher<AccessTokenResponse>()
-        val call: Call<String> = tokenRefresher.execute({
-            // TODO Call service
-            apiManager.profile().getProfile()
-        })
-        call.execute()
+
+    }
+}
 
 
+class AwesomeApiCaller(
+    private val preTokenRefresher: PreTokenRefresher<AccessTokenResponse>? = null,
+    private val postTokenRefresher: PostTokenRefresher<AccessTokenResponse>? = null,
+    private val apiManager: ApiManager
+) : ApiCaller<AccessTokenResponse>(preTokenRefresher, postTokenRefresher) {
+    suspend fun getProfile() {
+        retry(3) {
+            postTokenRefresh {
+                preTokenRefresh {
+                    apiManager.profile().getProfile()
+                }
+            }
+        }
+    }
+
+    private suspend fun retry(retry: Int, function: suspend () -> Response<String>) {
+        val response = function.invoke()
+    }
+}
+
+open class ApiCaller<TokenData>(
+    private val preTokenRefresher: PreTokenRefresher<TokenData>?,
+    private val postTokenRefresher: PostTokenRefresher<TokenData>?
+) {
+    suspend fun preTokenRefresh(body: suspend () -> Call<String>): Call<String> {
+        return preTokenRefresher?.let { refresher ->
+            refresher.execute({ body.invoke() })
+        } ?: run {
+            return body.invoke()
+        }
+    }
+
+    suspend fun postTokenRefresh(body: suspend () -> Call<String>): Response<String> {
+        return postTokenRefresher?.let { refresher ->
+            refresher.execute({ body.invoke() })
+        } ?: run {
+            return body.invoke().execute()
+        }
     }
 }
 
@@ -52,10 +75,10 @@ interface RequestExecutor<Response> {
     suspend fun onNext(): Call<Response>
 }
 
-interface TokenUpdater<T> {
-    suspend fun onUpdateNewToken(): Call<T>
+interface TokenUpdater<TokenData> {
+    suspend fun onUpdateNewToken(): Call<TokenData>
 
-    fun onTokenUpdateSuccess(body: T?)
+    fun onTokenUpdateSuccess(body: TokenData?)
 
     fun onTokenUpdateFailure(code: Int, message: String?): Exception
 }
@@ -68,25 +91,57 @@ interface TokenStore {
     fun isTokenExpired(token: String?): Boolean
 }
 
+interface TokenExpiredResponseValidator {
+    fun <T> validate(response: Response<T>): Boolean
+}
+
+data class ErrorResponse(
+    val message: String?,
+    val status: String?
+)
+
+class AwesomeTokenExpiredResponseValidator : TokenExpiredResponseValidator {
+    override fun <T> validate(response: Response<T>): Boolean {
+        return when (response.body()) {
+            is ErrorResponse -> {
+                response.code() == 401 && (response.body() as ErrorResponse).status == "MYCHN002"
+            }
+            else -> false
+        }
+    }
+}
+
+//interface RetryController {
+//    fun shouldRetry(response: Response<Any>): Boolean
+//}
+//
+//class AwesomeRetryController : RetryController {
+//    override fun shouldRetry(response: Response<Any>): Boolean {
+//        return true
+//    }
+//}
+
 class PreTokenRefresher<TokenData>(
     private val defaultStore: TokenStore,
     private val defaultUpdater: TokenUpdater<TokenData>
 ) {
-    suspend fun <Response> execute(
-        onNext: suspend () -> Call<Response>,
+    @WorkerThread
+    suspend fun <ApiResponse> execute(
+        onNext: suspend () -> Call<ApiResponse>,
         customStore: TokenStore? = null,
         customUpdater: TokenUpdater<TokenData>? = null
-    ): Call<Response> {
-        return execute(object : RequestExecutor<Response> {
-            override suspend fun onNext(): Call<Response> = onNext.invoke()
+    ): Call<ApiResponse> {
+        return execute(object : RequestExecutor<ApiResponse> {
+            override suspend fun onNext(): Call<ApiResponse> = onNext.invoke()
         }, customStore, customUpdater)
     }
 
-    suspend fun <Response> execute(
-        requestExecutor: RequestExecutor<Response>,
+    @WorkerThread
+    suspend fun <ApiResponse> execute(
+        requestExecutor: RequestExecutor<ApiResponse>,
         customStore: TokenStore? = null,
         customUpdater: TokenUpdater<TokenData>? = null
-    ): Call<Response> {
+    ): Call<ApiResponse> {
         val store = customStore ?: defaultStore
         val updater = customUpdater ?: defaultUpdater
         return if (store.isTokenExpired(store.getAccessToken())) {
@@ -99,6 +154,37 @@ class PreTokenRefresher<TokenData>(
             }
         } else {
             requestExecutor.onNext()
+        }
+    }
+}
+
+class PostTokenRefresher<TokenData>(
+    private val defaultUpdater: TokenUpdater<TokenData>,
+    private val tokenExpiredValidator: TokenExpiredResponseValidator
+) {
+    @WorkerThread
+    suspend fun <ApiResponse> execute(
+        onNext: suspend () -> Call<ApiResponse>,
+        customUpdater: TokenUpdater<TokenData>? = null
+    ): Response<ApiResponse> {
+        return execute(object : RequestExecutor<ApiResponse> {
+            override suspend fun onNext(): Call<ApiResponse> = onNext.invoke()
+        }, customUpdater)
+    }
+
+    @WorkerThread
+    suspend fun <ApiResponse> execute(
+        requestExecutor: RequestExecutor<ApiResponse>,
+        customUpdater: TokenUpdater<TokenData>? = null
+    ): Response<ApiResponse> {
+        val updater = customUpdater ?: defaultUpdater
+        val response = requestExecutor.onNext().execute()
+        return if (!tokenExpiredValidator.validate(response)) {
+            val refreshTokenResponse = updater.onUpdateNewToken().execute()
+            updater.onTokenUpdateSuccess(refreshTokenResponse.body())
+            requestExecutor.onNext().execute()
+        } else {
+            response
         }
     }
 }
