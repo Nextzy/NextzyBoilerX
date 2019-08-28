@@ -1,7 +1,7 @@
 package com.nextzy.library.boilerx.repository.core.experiment
 
-import androidx.annotation.WorkerThread
 import com.google.gson.annotations.SerializedName
+import com.nextzy.library.boilerx.repository.core.token.*
 import retrofit2.Call
 import retrofit2.Response
 
@@ -71,29 +71,6 @@ open class ApiCaller<TokenData>(
     }
 }
 
-interface RequestExecutor<Response> {
-    suspend fun onNext(): Call<Response>
-}
-
-interface TokenUpdater<TokenData> {
-    suspend fun onUpdateNewToken(): Call<TokenData>
-
-    fun onTokenUpdateSuccess(body: TokenData?)
-
-    fun onTokenUpdateFailure(code: Int, message: String?): Exception
-}
-
-interface TokenStore {
-    fun getAccessToken(): String?
-
-    fun getRefreshToken(): String?
-
-    fun isTokenExpired(token: String?): Boolean
-}
-
-interface TokenExpiredResponseValidator {
-    fun <T> validate(response: Response<T>): Boolean
-}
 
 data class ErrorResponse(
     val message: String?,
@@ -121,74 +98,6 @@ class AwesomeTokenExpiredResponseValidator : TokenExpiredResponseValidator {
 //    }
 //}
 
-class PreTokenRefresher<TokenData>(
-    private val defaultStore: TokenStore,
-    private val defaultUpdater: TokenUpdater<TokenData>
-) {
-    @WorkerThread
-    suspend fun <ApiResponse> execute(
-        onNext: suspend () -> Call<ApiResponse>,
-        customStore: TokenStore? = null,
-        customUpdater: TokenUpdater<TokenData>? = null
-    ): Call<ApiResponse> {
-        return execute(object : RequestExecutor<ApiResponse> {
-            override suspend fun onNext(): Call<ApiResponse> = onNext.invoke()
-        }, customStore, customUpdater)
-    }
-
-    @WorkerThread
-    suspend fun <ApiResponse> execute(
-        requestExecutor: RequestExecutor<ApiResponse>,
-        customStore: TokenStore? = null,
-        customUpdater: TokenUpdater<TokenData>? = null
-    ): Call<ApiResponse> {
-        val store = customStore ?: defaultStore
-        val updater = customUpdater ?: defaultUpdater
-        return if (store.isTokenExpired(store.getAccessToken())) {
-            val response = updater.onUpdateNewToken().execute()
-            if (response.isSuccessful) {
-                updater.onTokenUpdateSuccess(response.body())
-                requestExecutor.onNext()
-            } else {
-                throw updater.onTokenUpdateFailure(response.code(), response.message())
-            }
-        } else {
-            requestExecutor.onNext()
-        }
-    }
-}
-
-class PostTokenRefresher<TokenData>(
-    private val defaultUpdater: TokenUpdater<TokenData>,
-    private val tokenExpiredValidator: TokenExpiredResponseValidator
-) {
-    @WorkerThread
-    suspend fun <ApiResponse> execute(
-        onNext: suspend () -> Call<ApiResponse>,
-        customUpdater: TokenUpdater<TokenData>? = null
-    ): Response<ApiResponse> {
-        return execute(object : RequestExecutor<ApiResponse> {
-            override suspend fun onNext(): Call<ApiResponse> = onNext.invoke()
-        }, customUpdater)
-    }
-
-    @WorkerThread
-    suspend fun <ApiResponse> execute(
-        requestExecutor: RequestExecutor<ApiResponse>,
-        customUpdater: TokenUpdater<TokenData>? = null
-    ): Response<ApiResponse> {
-        val updater = customUpdater ?: defaultUpdater
-        val response = requestExecutor.onNext().execute()
-        return if (!tokenExpiredValidator.validate(response)) {
-            val refreshTokenResponse = updater.onUpdateNewToken().execute()
-            updater.onTokenUpdateSuccess(refreshTokenResponse.body())
-            requestExecutor.onNext().execute()
-        } else {
-            response
-        }
-    }
-}
-
 class AwesomeTokenStore : TokenStore {
     override fun getAccessToken(): String? = "1234"
 
@@ -196,7 +105,6 @@ class AwesomeTokenStore : TokenStore {
 
     override fun isTokenExpired(token: String?): Boolean = true
 }
-
 
 class AwesomeTokenUpdater(
     private val util: Util,
