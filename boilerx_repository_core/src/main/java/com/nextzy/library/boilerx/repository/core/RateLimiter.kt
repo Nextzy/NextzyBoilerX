@@ -35,6 +35,7 @@ class RateLimiter<KEY> {
         timestamps.clear()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onNullLastFetched(key: KEY, timestamps: Map<KEY, Long>): Boolean {
         return true
     }

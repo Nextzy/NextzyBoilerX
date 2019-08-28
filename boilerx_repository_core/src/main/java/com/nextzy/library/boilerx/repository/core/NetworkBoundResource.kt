@@ -15,10 +15,10 @@ import com.nextzy.library.boilerx.repository.core.vo.Result
 
 abstract class NetworkBoundResource<InputType, ResultType, RequestType>
 @MainThread constructor(
-        private val appExecutors: AppExecutors,
-        private val errorInterceptor: ErrorResponseInterceptor<InputType, RequestType>? = null,
-        private val retryInterceptor: RetryInterceptor? = null,
-        private val maxRetry: Int = 1
+    private val appExecutors: AppExecutors,
+    private val errorInterceptor: ErrorResponseInterceptor<InputType, RequestType>? = null,
+    private val retryInterceptor: RetryInterceptor? = null,
+    private val maxRetry: Int = 1
 ) {
     private val result = MediatorLiveData<Result<ResultType>>()
 
@@ -55,15 +55,15 @@ abstract class NetworkBoundResource<InputType, ResultType, RequestType>
     private fun fetchFromNetwork(dbSource: LiveData<ResultType>) {
         val requestContainer: RequestContainer<InputType, RequestType> = createCall()
         val apiResponse = RepositoryLiveData(
-                requestContainer.job,
-                retryInterceptor,
-                requestContainer.data,
-                maxRetry
+            requestContainer.job,
+            retryInterceptor,
+            requestContainer.data,
+            maxRetry
         )
         apiResponse.execute()
         // we re-attach dbSource as a new source, it will dispatch its latest value quickly
 
-        result.addSource(dbSource) { newData ->
+        result.addSource(dbSource) {
             setValue(Result.Loading)
         }
         result.addSource(apiResponse) { response ->
@@ -97,9 +97,7 @@ abstract class NetworkBoundResource<InputType, ResultType, RequestType>
                     appExecutors.diskIO().execute {
                         callFailed(response.errorMessage)
                         appExecutors.mainThread().execute {
-                            result.addSource(dbSource) { newData ->
-                                setValue(Result.Error(Exception(response.errorMessage)))
-                            }
+                            setValue(Result.Error(Exception(response.errorMessage)))
                         }
                     }
                 }
