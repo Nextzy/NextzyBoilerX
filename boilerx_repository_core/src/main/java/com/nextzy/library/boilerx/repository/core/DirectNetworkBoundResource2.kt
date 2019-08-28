@@ -2,6 +2,7 @@ package com.nextzy.library.boilerx.repository.core
 
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import com.nextzy.library.boilerx.network.core.ApiEmptyResponse
 import com.nextzy.library.boilerx.network.core.ApiErrorResponse
@@ -50,4 +51,12 @@ abstract class DirectNetworkBoundResource2<ResultType, ResponseType> :
             }
         }
     }
+
+    override fun loadFromDb(): LiveData<ResultType> = MutableLiveData<ResultType>().apply {
+        postValue(null)
+    }
+
+    override fun saveCallResult(item: ResultType) {}
+
+    override fun shouldFetch(data: ResultType?): Boolean = true
 }
