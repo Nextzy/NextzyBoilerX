@@ -7,7 +7,6 @@ package com.nextzy.library.boilerx.repository.core.vo
 sealed class Result<out R> {
 
     data class Success<out T>(val data: T?) : Result<T>()
-    data class Failure(val code: Int, val message: String?) : Result<Nothing>()
     data class Error(val exception: Exception) : Result<Nothing>()
     object Loading : Result<Nothing>()
 
