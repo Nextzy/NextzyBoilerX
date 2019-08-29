@@ -7,12 +7,15 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Deprecated(
+    message = "We don't need this anymore. Coroutine is better"
+)
 @Singleton
 open class AppExecutors(
     private val diskIO: Executor,
     private val networkIO: Executor,
     private val mainThread: Executor
-){
+) {
     @Inject
     constructor() : this(
         Executors.newSingleThreadExecutor(),

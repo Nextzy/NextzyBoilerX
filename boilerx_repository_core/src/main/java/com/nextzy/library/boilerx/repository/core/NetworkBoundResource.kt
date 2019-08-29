@@ -13,6 +13,9 @@ import com.nextzy.library.boilerx.repository.core.interceptor.RetryInterceptor
 import com.nextzy.library.boilerx.repository.core.livedata.RepositoryLiveData
 import com.nextzy.library.boilerx.repository.core.vo.Result
 
+@Deprecated(
+    message = "This class was deprecated. Please use NetworkBoundResource2"
+)
 abstract class NetworkBoundResource<InputType, ResultType, RequestType>
 @MainThread constructor(
     private val appExecutors: AppExecutors,
