@@ -14,18 +14,18 @@ class RepositoryLiveData<T>(
     private var deferred: Deferred<Response<T>>,
     private var retryInterceptor: RetryInterceptor?,
     private var data: Bundle?,
-    private var maxRetry: Int = 1
+    private var maxRetry: Int = 2
 ) : LiveData<ApiResponse<T>>() {
 
     fun execute() {
         GlobalScope.launch {
-            for (retry in 0..(maxRetry - 1)) {
+            for (retry in 0 until maxRetry) {
                 try {
                     val result: Response<T> = deferred.await()
                     postValue(ApiResponse.create(result))
                     break
                 } catch (e: Exception) {
-                    if (shouldRetry(e, retry)) {
+                    if (!shouldRetry(e, retry)) {
                         postValue(ApiResponse.create(e))
                         break
                     }
@@ -37,5 +37,5 @@ class RepositoryLiveData<T>(
     private fun shouldRetry(e: Exception, retry: Int) =
         retryInterceptor?.shouldRetry(e, retry, data) ?: true && isNotLastRetryTime(retry)
 
-    private fun isNotLastRetryTime(retry: Int) = retry == (maxRetry - 1)
+    private fun isNotLastRetryTime(retry: Int) = retry != (maxRetry - 1)
 }
