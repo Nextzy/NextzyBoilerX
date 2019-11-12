@@ -21,7 +21,7 @@ abstract class NetworkBoundResource<InputType, ResultType, RequestType>
     private val appExecutors: AppExecutors,
     private val errorInterceptor: ErrorResponseInterceptor<InputType, RequestType>? = null,
     private val retryInterceptor: RetryInterceptor? = null,
-    private val maxRetry: Int = 1
+    private val maxRetry: Int = 2
 ) {
     private val result = MediatorLiveData<Result<ResultType>>()
 
