@@ -40,7 +40,7 @@ abstract class DirectNetworkBoundResource<InputType, ResultType, RequestType>
     private fun fetchFromNetwork() {
         val requestContainer: RequestContainer<InputType, RequestType> = createCall()
         val apiResponse = RepositoryLiveData(
-                requestContainer.job,
+                requestContainer.action,
                 retryInterceptor,
                 requestContainer.data,
                 maxRetry

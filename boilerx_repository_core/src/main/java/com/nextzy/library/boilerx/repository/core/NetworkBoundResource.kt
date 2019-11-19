@@ -58,7 +58,7 @@ abstract class NetworkBoundResource<InputType, ResultType, RequestType>
     private fun fetchFromNetwork(dbSource: LiveData<ResultType>) {
         val requestContainer: RequestContainer<InputType, RequestType> = createCall()
         val apiResponse = RepositoryLiveData(
-            requestContainer.job,
+            requestContainer.action,
             retryInterceptor,
             requestContainer.data,
             maxRetry

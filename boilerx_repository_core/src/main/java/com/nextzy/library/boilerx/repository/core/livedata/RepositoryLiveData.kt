@@ -4,14 +4,13 @@ import android.os.Bundle
 import androidx.lifecycle.LiveData
 import com.nextzy.library.boilerx.network.core.ApiResponse
 import com.nextzy.library.boilerx.repository.core.interceptor.RetryInterceptor
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
 
 class RepositoryLiveData<T>(
-    private var deferred: Deferred<Response<T>>,
+    private var action: () -> Response<T>,
     private var retryInterceptor: RetryInterceptor?,
     private var data: Bundle?,
     private var maxRetry: Int = 2
@@ -21,7 +20,7 @@ class RepositoryLiveData<T>(
         GlobalScope.launch {
             for (retry in 0 until maxRetry) {
                 try {
-                    val result: Response<T> = deferred.await()
+                    val result: Response<T> = action()
                     postValue(ApiResponse.create(result))
                     break
                 } catch (e: Exception) {
@@ -34,8 +33,9 @@ class RepositoryLiveData<T>(
         }
     }
 
-    private fun shouldRetry(e: Exception, retry: Int) =
-        retryInterceptor?.shouldRetry(e, retry, data) ?: true && isNotLastRetryTime(retry)
+    private fun shouldRetry(e: Exception, retry: Int): Boolean {
+        return retryInterceptor?.shouldRetry(e, retry, data) ?: true && isNotLastRetryTime(retry)
+    }
 
     private fun isNotLastRetryTime(retry: Int) = retry != (maxRetry - 1)
 }
