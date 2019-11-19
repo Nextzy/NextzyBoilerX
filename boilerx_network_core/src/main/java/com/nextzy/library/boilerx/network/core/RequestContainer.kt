@@ -5,7 +5,7 @@ import kotlinx.coroutines.Deferred
 import retrofit2.Response
 
 class RequestContainer<InputType, ResponseType>(
-    var job: Deferred<Response<ResponseType>>,
     var input: InputType,
-    var data: Bundle?
+    var data: Bundle?,
+    var action: () -> Response<ResponseType>
 )
