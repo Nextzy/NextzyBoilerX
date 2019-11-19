@@ -78,7 +78,7 @@ ext {
     siteUrl = 'https://github.com/Nextzy/NextzyBoilerX'
     gitUrl = 'https://github.com/Nextzy/NextzyBoilerX.git'
 
-    libraryVersion = '1.1.0-alpha4'
+    libraryVersion = '1.1.0-alpha5'
 
     developerId = 'nextzy'
     developerName = 'Nextzy Technologies'
